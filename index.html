@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Vinilos</title>
+    <style>
+        :root {
+            --violeta: #6C4AB6;
+            --violeta-oscuro: #4B2E83;
+            --lila: #EDE6FA;
+            --blanco: #FFFFFF;
+            --texto: #333;
+            --verde: #2E9E6B;
+            --rojo: #C0392B;
+            --gris: #F4F2F8;
+            --sombra: 0 8px 24px rgba(76, 46, 131, .15);
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(160deg, var(--lila), var(--gris));
+            color: var(--texto);
+            min-height: 100vh;
+        }
+        .contenedor {
+            max-width: 520px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+        header.cabecera {
+            background: linear-gradient(135deg, var(--violeta), var(--violeta-oscuro));
+            border-radius: 0 0 18px 18px;
+            padding: 18px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            color: var(--blanco);
+            box-shadow: var(--sombra);
+        }
+        .logo {
+            width: 64px; height: 64px;
+            min-width: 64px;
+            border-radius: 14px;
+            background: var(--blanco);
+            border: 3px dashed rgba(255,255,255,.7);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 10px; color: #999;
+            overflow: hidden;
+        }
+        .logo img { width: 100%; height: 100%; object-fit: contain; }
+        .titulo { text-align: left; }
+        .titulo h1 { margin: 0; font-size: 1.3rem; line-height: 1.2; }
+        .titulo p { margin: 4px 0 0; font-size: .85rem; opacity: .85; }
+    </style>
+</head>
+<body>
+    <header class="cabecera">
+        <div class="logo" id="logo"><img src="images/logo.jpg" alt="NODOSYV"></div>
+        <div class="titulo">
+            <h1>Calculadora de Vinilos</h1>
+            <p>Precios para vinilos de corte</p>
+        </div>
+    </header>
+    <div class="contenedor">
+        <form id="formMedidas" class="tarjeta">
+            <h2>Medidas del vinilo</h2>
+            <label for="ancho">Ancho (cm)</label>
+            <input type="number" id="ancho" min="0" step="any" required placeholder="Ej: 100">
+            <label for="alto">Alto (cm)</label>
+            <input type="number" id="alto" min="0" step="any" required placeholder="Ej: 90">
+            <button type="submit">Calcular</button>
+        </form>
+        <div id="error" class="error" hidden></div>
+        <div id="resultado" class="tarjeta resultado" hidden></div>
+    </div>
+    <style>
+        .tarjeta {
+            background: var(--blanco);
+            border-radius: 16px;
+            box-shadow: var(--sombra);
+            padding: 22px;
+            margin-top: 22px;
+            border: 1px solid #E4DCF3;
+        }
+        .tarjeta h2 { margin-top: 0; color: var(--violeta-oscuro); font-size: 1.05rem; }
+        label {
+            display: block;
+            text-align: left;
+            font-weight: 600;
+            font-size: .85rem;
+            color: var(--violeta-oscuro);
+            margin: 10px 0 4px;
+        }
+        input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid #D9CFF0;
+            border-radius: 10px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color .2s;
+        }
+        input:focus { border-color: var(--violeta); }
+        button {
+            width: 100%;
+            margin-top: 18px;
+            padding: 13px;
+            background: linear-gradient(135deg, var(--violeta), var(--violeta-oscuro));
+            color: var(--blanco);
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform .1s, opacity .2s;
+        }
+        button:hover { opacity: .92; }
+        button:active { transform: scale(.98); }
+        .error {
+            margin-top: 16px;
+            padding: 12px;
+            background: #FDECEA;
+            border: 1px solid #F5B7B1;
+            border-radius: 10px;
+            color: var(--rojo);
+            font-weight: 600;
+        }
+        .resultado .fila {
+            display: flex;
+            justify-content: space-between;
+            padding: 9px 0;
+            border-bottom: 1px dashed #E4DCF3;
+            font-size: .95rem;
+        }
+        .resultado .fila:last-child { border-bottom: none; }
+        .resultado .fila strong { color: var(--violeta-oscuro); }
+        .destacado {
+            margin-top: 14px;
+            padding: 14px;
+            background: var(--lila);
+            border-radius: 12px;
+            font-size: 1.05rem;
+            color: var(--violeta-oscuro);
+        }
+        .destacado .grande { font-size: 1.5rem; font-weight: 700; color: var(--verde); }
+        @media (max-width: 480px) {
+            .contenedor { padding: 10px; }
+            .tarjeta { padding: 16px; }
+            .logo { width: 52px; height: 52px; min-width: 52px; }
+            .titulo h1 { font-size: 1.1rem; }
+        }
+    </style>
+    <script>
+        const PRECIO_POR_METRO = 10000;
+        const DESPERDICIO_POR_MESA = 0.08;
+        const PRECIO_GANANCIA_POR_M2 = 20000;
+
+        function formatoCLP(n) {
+            return '$' + n.toLocaleString('es-CL', { maximumFractionDigits: 0 });
+        }
+
+        document.getElementById('formMedidas').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const errorDiv = document.getElementById('error');
+            const resDiv = document.getElementById('resultado');
+            errorDiv.hidden = true;
+            resDiv.hidden = true;
+
+            const ancho = parseFloat(document.getElementById('ancho').value);
+            const alto = parseFloat(document.getElementById('alto').value);
+
+            if (isNaN(ancho) || isNaN(alto) || ancho <= 0 || alto <= 0) {
+                errorDiv.textContent = 'Por favor, introduce medidas válidas mayores que 0.';
+                errorDiv.hidden = false;
+                return;
+            }
+
+            const mesasAncho = Math.ceil(ancho / 60);
+            const filasAlto = Math.ceil(alto / 85);
+            const totalMesas = mesasAncho * filasAlto;
+
+            const metrosLineales = mesasAncho * (alto / 100);
+            const desperdicio = totalMesas * DESPERDICIO_POR_MESA;
+            const metrosTotales = metrosLineales + desperdicio;
+            const costo = metrosTotales * PRECIO_POR_METRO;
+            const ganancia = ((ancho * alto) / 6000) * PRECIO_GANANCIA_POR_M2;
+            const pventa = costo + ganancia;
+            const colocacion = pventa / 2;
+
+            resDiv.innerHTML =
+                '<h2>Resultado</h2>' +
+                '<div class="fila"><span>Medidas</span><strong>' + ancho + ' × ' + alto + ' cm</strong></div>' +
+                '<div class="fila"><span>Metros lineales</span><strong>' + metrosTotales.toFixed(2) + ' m</strong></div>' +
+                '<div class="fila"><span>Costo del material</span><strong>' + formatoCLP(costo) + '</strong></div>' +
+                '<div class="fila"><span>Ganancia</span><strong>' + formatoCLP(ganancia) + '</strong></div>' +
+                '<div class="fila"><span>Precio de venta</span><strong>' + formatoCLP(pventa) + '</strong></div>' +
+                '<div class="fila"><span>Colocación</span><strong>' + formatoCLP(colocacion) + '</strong></div>';
+                
+            resDiv.hidden = false;
+        });
+    </script>
+</body>
+</html>
+
