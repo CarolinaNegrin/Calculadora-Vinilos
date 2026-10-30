@@ -184,7 +184,7 @@
             const metrosLineales = mesasAncho * (alto / 100);
             const desperdicio = totalMesas * DESPERDICIO_POR_MESA;
             const metrosTotales = metrosLineales + desperdicio;
-            const costo = metrosTotales * PRECIO_POR_METRO;
+            const costo = metrosTotales * PRECIO_POR_METRO + (metrosTotales * 2 * 1000) ;
             const ganancia = ((ancho * alto) / 6000) * PRECIO_GANANCIA_POR_M2;
             const pventa = costo + ganancia;
             const colocacion = pventa / 2;
